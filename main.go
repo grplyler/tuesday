@@ -31,15 +31,15 @@ func PrintClassHeader(class string) {
 	fmt.Printf("+-----+----------+--------------------------------- [ %s ]\n", class)
 }
 
-func PrintTotalProgress(tasks [][]string) {
-	tp := CalcTotalProgress(tasks)
+func PrintTotalProgress(tasks [][]string, week string) {
+	tp := CalcTotalProgress(tasks, week)
 	tp_fmt := FormatTotalProgress(tp, 50, "|")
 	fmt.Printf("|%s| %d%% Total |\n", tp_fmt, tp)
 }
 
-func PrintFooter(tasks [][]string) {
+func PrintFooter(tasks [][]string, week string) {
 	fmt.Println("+==============================================================+")
-	PrintTotalProgress(tasks)
+	PrintTotalProgress(tasks, week)
 	fmt.Println("+==============================================================+")
 
 }
@@ -66,7 +66,7 @@ func FormatTaskID() {
 
 }
 
-func CalcTotalProgress(tasks [][]string) int {
+func CalcTotalProgress(tasks [][]string, week string) int {
 
 	total := 0.0
 	done := 0.0
@@ -76,8 +76,10 @@ func CalcTotalProgress(tasks [][]string) int {
 			fmt.Println("Error converting progress string to integer.")
 			log.Fatalln(err)
 		}
-		done += float64(inc)
-		total += 100.0
+		if v[1] == week {
+			done += float64(inc)
+			total += 100.0
+		}
 
 	}
 
@@ -105,7 +107,7 @@ func PrintTask(task []string) {
 	// content_fmt := Fillr(content, " ", 20)
 	progress_fmt := FormatTaskProgress(i_progress)
 
-	fmt.Printf("|%s |%s|%s\n", id_fmt, progress_fmt, content)
+	fmt.Printf("|%s |%s| %s\n", id_fmt, progress_fmt, content)
 }
 
 func PrintAll(lines [][]string, week string) {
@@ -133,7 +135,7 @@ func PrintAll(lines [][]string, week string) {
 
 	}
 
-	PrintFooter(lines)
+	PrintFooter(lines, week)
 }
 
 func GetLatestWeek(lines [][]string) string {
@@ -210,7 +212,9 @@ func SaveCSV(lines [][]string) {
 	defer writer.Flush()
 
 	for _, value := range lines {
-		value = value[:len(value)-1]
+		if value[len(value)-1] != "assign" {
+			value = value[:len(value)-1]
+		}
 		err := writer.Write(value)
 		if err != nil {
 			log.Fatalln(err)
@@ -242,7 +246,6 @@ func UpdateProgress(lines [][]string, id string, progress string) [][]string {
 }
 
 func AddTask(lines [][]string, task []string) {
-	fmt.Println(task)
 	joint := strings.Join(task, " ")
 	split := strings.Split(joint, ":")
 	if len(split) != 3 {
@@ -252,10 +255,8 @@ func AddTask(lines [][]string, task []string) {
 	}
 
 	lines = append(lines, []string{split[0], split[1], split[2], "0", "assign"})
-
-	for _, v := range split {
-		fmt.Println(v)
-	}
+	fmt.Println("Added Task:", split)
+	SaveCSV(lines)
 }
 
 func Boot() {
