@@ -154,7 +154,7 @@ func GetLatestWeek(lines [][]string) string {
 }
 
 func sort_data(lines [][]string) [][]string {
-	sort.Slice(lines, func(i, j int) bool {
+	sort.SliceStable(lines, func(i, j int) bool {
 		// Sort by week (latest week last)
 		// if lines[i][1] < lines[j][1] {
 		// 	return true
@@ -215,6 +215,7 @@ func SaveCSV(lines [][]string) {
 	defer writer.Flush()
 
 	for _, value := range lines {
+		value = value[:len(value)-1]
 		err := writer.Write(value)
 		if err != nil {
 			log.Fatalln(err)
@@ -225,6 +226,16 @@ func SaveCSV(lines [][]string) {
 
 func UpdateProgress(lines [][]string, id string, progress string) [][]string {
 
+	iprog, err := strconv.Atoi(progress)
+	CheckError("Progress must be an integer.", err)
+	if iprog < 0 {
+		iprog = 0
+	}
+	if iprog > 100 {
+		iprog = 100
+	}
+	progress = strconv.Itoa(iprog)
+
 	for i, v := range lines {
 		if v[5] == id {
 			lines[i][3] = progress
@@ -233,6 +244,23 @@ func UpdateProgress(lines [][]string, id string, progress string) [][]string {
 
 	SaveCSV(lines)
 	return lines
+}
+
+func AddTask(lines [][]string, task []string) {
+	fmt.Println(task)
+	joint := strings.Join(task, " ")
+	split := strings.Split(joint, ":")
+	if len(split) != 3 {
+		fmt.Println("Error Assing Task: Need exactly 3 arguments")
+		fmt.Println("Format: <class>:<week>:<content>")
+		os.Exit(1)
+	}
+
+	lines = append(lines, []string{split[0], split[1], split[2], "0", "assign"})
+
+	for _, v := range split {
+		fmt.Println(v)
+	}
 }
 
 func Boot() {
@@ -271,13 +299,19 @@ func main() {
 	}
 
 	// Update Progress
-	if IsDigit(os.Args[1]) && IsDigit(os.Args[2]) {
+	if IsDigit(os.Args[1]) && (IsDigit(os.Args[2]) || os.Args[2] == "done") {
+		if os.Args[2] == "done" {
+			os.Args[2] = "100"
+		}
 		lines := UpdateProgress(lines, os.Args[1], os.Args[2])
 		week := GetLatestWeek(lines)
 		PrintAll(lines, week)
 		return
 	}
 
-	fmt.Println("total Progress", CalcTotalProgress(lines))
+	// Add Todo
+	if os.Args[1] == "a" {
+		AddTask(lines, os.Args[2:])
+	}
 
 }
