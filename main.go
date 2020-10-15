@@ -90,11 +90,6 @@ func FormatTotalProgress(tp int, width int, start string) string {
 	nBlocks := math.Round((float64(tp) / 100) * float64(width))
 	fBlocks := float64(width) - nBlocks
 
-	// filled = round((int(percent) / 100) * width)
-	// empty = width - filled
-	// return f"{start}{fill * filled}{' ' * empty}{end}"
-
-	// Scale
 	filler := strings.Repeat(" ", int(math.Round(fBlocks)))
 	blocks := strings.Repeat("█", int(math.Round(nBlocks)))
 	return fmt.Sprintf("%s%s", blocks, filler)
@@ -280,8 +275,6 @@ func Boot() {
 func main() {
 	Boot()
 	lines := LoadCSV()
-
-	// CLI
 
 	// Show Latest Week Summary
 	if len(os.Args) == 1 {
