@@ -156,23 +156,22 @@ func GetLatestWeek(lines [][]string) string {
 func sort_data(lines [][]string) [][]string {
 	sort.Slice(lines, func(i, j int) bool {
 		// Sort by week (latest week last)
-		if lines[i][1] < lines[j][1] {
-			return true
-		}
-		if lines[i][1] > lines[j][1] {
-			return false
-		}
+		// if lines[i][1] < lines[j][1] {
+		// 	return true
+		// }
+		// if lines[i][1] > lines[j][1] {
+		// 	return false
+		// }
 
 		// Sort by class name (ASC)
-		return lines[i][0] < lines[j][0]
+		return lines[i][0] > lines[j][0]
 	})
 
 	return lines
 }
 
-func load_csv() [][]string {
-	dpath := data_path()
-	fmt.Println(dpath)
+func LoadCSV() [][]string {
+	dpath := DataPath()
 
 	csvFile, err := os.OpenFile(dpath, os.O_CREATE, os.ModePerm)
 	if err != nil {
@@ -194,7 +193,7 @@ func load_csv() [][]string {
 	}
 
 	// Sort by week then class title
-	sort_data(lines)
+	lines = sort_data(lines)
 
 	// Add ID's
 	counter := 0
@@ -206,14 +205,34 @@ func load_csv() [][]string {
 
 }
 
-func data_path() string {
-	usr, err := user.Current()
+func SaveCSV(lines [][]string) {
 
-	if err != nil {
-		log.Fatal(err)
+	file, err := os.Create(DataPath())
+	CheckError("Error opening datafile for saving", err)
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	for _, value := range lines {
+		err := writer.Write(value)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		CheckError("Cannot write to data file", err)
 	}
-	dataPath := filepath.Join(usr.HomeDir, ".tuesday/", "main.csv")
-	return dataPath
+}
+
+func UpdateProgress(lines [][]string, id string, progress string) [][]string {
+
+	for i, v := range lines {
+		if v[5] == id {
+			lines[i][3] = progress
+		}
+	}
+
+	SaveCSV(lines)
+	return lines
 }
 
 func Boot() {
@@ -231,22 +250,32 @@ func Boot() {
 }
 
 func main() {
-	usr, _ := user.Current()
-	fmt.Println(usr.HomeDir)
 	Boot()
-	lines := load_csv()
+	lines := LoadCSV()
 
-	fmt.Println(len(os.Args))
+	// CLI
 
+	// Show Latest Week Summary
 	if len(os.Args) == 1 {
 		// Print Latest Week
 		week := GetLatestWeek(lines)
 		PrintAll(lines, week)
-	} else {
+		return
+
+		// Show specified week summary
+	} else if len(os.Args) == 2 {
 		// Print Specified Week
 		week := os.Args[1]
-		fmt.Println("week", week)
 		PrintAll(lines, week)
+		return
+	}
+
+	// Update Progress
+	if IsDigit(os.Args[1]) && IsDigit(os.Args[2]) {
+		lines := UpdateProgress(lines, os.Args[1], os.Args[2])
+		week := GetLatestWeek(lines)
+		PrintAll(lines, week)
+		return
 	}
 
 	fmt.Println("total Progress", CalcTotalProgress(lines))
