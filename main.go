@@ -14,33 +14,39 @@ import (
 	"strings"
 )
 
+const (
+	FILLER_CHAR   = "░"
+	PROGRESS_CHAR = "▓"
+)
+
 func FormatTaskProgress(progress string) string {
 	done, _ := strconv.Atoi(progress)
 	n_blocks := done / 10.0
-	blocks := strings.Repeat("█", n_blocks)
-	filler := strings.Repeat(" ", 10-n_blocks)
+	blocks := strings.Repeat(PROGRESS_CHAR, n_blocks)
+	filler := strings.Repeat(FILLER_CHAR, 10-n_blocks)
 	return fmt.Sprintf("%s%s", blocks, filler)
 }
 
 func PrintHeader(week string) {
-	fmt.Printf("+--------------------------------------------------------------+\n")
-	fmt.Printf("|                            Week %s                           \n", week)
+	fmt.Printf("╔══════════════════════════════════════════════════════════════╗\n")
+	fmt.Printf("║                            Week %s                            ║\n", week)
 }
 
 func PrintClassHeader(class string) {
-	fmt.Printf("+-----+----------+--------------------------------- [ %s ]\n", class)
+	fmt.Printf("╠═════╬══════════╬═════════════════════════════════ [ %s ]\n", class)
 }
 
 func PrintTotalProgress(tasks [][]string, week string) {
 	tp := CalcTotalProgress(tasks, week)
-	tp_fmt := FormatTotalProgress(tp, 50, "|")
-	fmt.Printf("|%s| %d%% Total |\n", tp_fmt, tp)
+	tp_fmt := FormatTotalProgress(tp, 51, "║")
+	tpi_fmt := Filll(strconv.Itoa(tp), " ", 2)
+	fmt.Printf("║%s║ %s%% done ║\n", tp_fmt, tpi_fmt)
 }
 
 func PrintFooter(tasks [][]string, week string) {
-	fmt.Println("+==============================================================+")
+	fmt.Println("╠═══════════════════════════════════════════════════╦══════════╗")
 	PrintTotalProgress(tasks, week)
-	fmt.Println("+==============================================================+")
+	fmt.Println("╚═══════════════════════════════════════════════════╩══════════╝")
 
 }
 
@@ -92,8 +98,8 @@ func FormatTotalProgress(tp int, width int, start string) string {
 	nBlocks := math.Round((float64(tp) / 100) * float64(width))
 	fBlocks := float64(width) - nBlocks
 
-	filler := strings.Repeat(" ", int(math.Round(fBlocks)))
-	blocks := strings.Repeat("█", int(math.Round(nBlocks)))
+	filler := strings.Repeat(FILLER_CHAR, int(math.Round(fBlocks)))
+	blocks := strings.Repeat(PROGRESS_CHAR, int(math.Round(nBlocks)))
 	return fmt.Sprintf("%s%s", blocks, filler)
 }
 
@@ -107,7 +113,7 @@ func PrintTask(task []string) {
 	// content_fmt := Fillr(content, " ", 20)
 	progress_fmt := FormatTaskProgress(i_progress)
 
-	fmt.Printf("|%s |%s| %s\n", id_fmt, progress_fmt, content)
+	fmt.Printf("║%s ║%s║ %s\n", id_fmt, progress_fmt, content)
 }
 
 func PrintAll(lines [][]string, week string) {
@@ -255,7 +261,7 @@ func AddTask(lines [][]string, task []string) {
 	}
 
 	lines = append(lines, []string{split[0], split[1], split[2], "0", "assign"})
-	fmt.Println("Added Task:", split)
+	fmt.Println("Task Added:", split)
 	SaveCSV(lines)
 }
 
