@@ -30,23 +30,23 @@ func FormatTaskProgress(progress string) string {
 
 func PrintHeader(week string) {
 	fmt.Printf("╔══════════════════════════════════════════════════════════════╗\n")
-	fmt.Printf("║  ID                        Week %s                ╔══════════╣\n", Fillr(week, " ", 2))
+	fmt.Printf("║  ID                        Week %s                ╔══════════╣\n", PadR(week, " ", 2))
 }
 
 func PrintClassHeader(class string) {
-	fmt_class := Fillr(class, " ", 9)
+	fmt_class := PadR(class, " ", 9)
 	fmt.Printf("╠═════╬══════════╬══════════════════════════════════╣ %s║\n", fmt_class)
 }
 
 func PrintClassHeaderFirst(class string) {
-	fmt_class := Fillr(class, " ", 9)
+	fmt_class := PadR(class, " ", 9)
 	fmt.Printf("╠═════╦══════════╦══════════════════════════════════╣ %s║\n", fmt_class)
 }
 
 func PrintTotalProgress(tasks [][]string, week string) {
 	tp := CalcTotalProgress(tasks, week)
 	tp_fmt := FormatTotalProgress(tp, 51, "║")
-	tpi_fmt := Filll(strconv.Itoa(tp), " ", 2)
+	tpi_fmt := PadL(strconv.Itoa(tp), " ", 2)
 	fmt.Printf("║%s║ %s%% done ║\n", tp_fmt, tpi_fmt)
 }
 
@@ -57,7 +57,8 @@ func PrintFooter(tasks [][]string, week string) {
 
 }
 
-func Filll(content string, fill string, width int) string {
+// Pad Left: Takes a string and pdds it left with specified char
+func PadL(content string, fill string, width int) string {
 	cwidth := len(content)
 	fwidth := width - cwidth
 	if fwidth < 0 {
@@ -66,7 +67,8 @@ func Filll(content string, fill string, width int) string {
 	return fmt.Sprintf("%s%s", strings.Repeat(fill, fwidth), content)
 }
 
-func Fillr(content string, fill string, width int) string {
+// Pad Right: Takes a string and pads it right with specified char
+func PadR(content string, fill string, width int) string {
 	cwidth := len(content)
 	fwidth := width - cwidth
 	if fwidth < 0 {
@@ -75,8 +77,28 @@ func Fillr(content string, fill string, width int) string {
 	return fmt.Sprintf("%s%s", content, strings.Repeat(fill, fwidth))
 }
 
-func FormatTaskID() {
+func CheckError(message string, err error) {
+	if err != nil {
+		log.Fatal(message, err)
+	}
+}
 
+func DataPath() string {
+	usr, err := user.Current()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	dataPath := filepath.Join(usr.HomeDir, ".tuesday/", "main.csv")
+	return dataPath
+}
+
+func IsDigit(num string) bool {
+	if _, err := strconv.Atoi(num); err == nil {
+		return true
+	} else {
+		return false
+	}
 }
 
 func CalcTotalProgress(tasks [][]string, week string) int {
@@ -117,14 +139,14 @@ func PrintTask(task []string, extra string) {
 	content := task[2]
 
 	// Format Content
-	content_fmt := Fillr(content, " ", 33)
+	content_fmt := PadR(content, " ", 33)
 	content_fmt += extra
 
 	i_progress := task[3]
 	id := task[5]
 
-	id_fmt := Filll(id, " ", 4)
-	// content_fmt := Fillr(content, " ", 20)
+	id_fmt := PadL(id, " ", 4)
+	// content_fmt := PadR(content, " ", 20)
 	progress_fmt := FormatTaskProgress(i_progress)
 
 	fmt.Printf("║%s ║%s║ %s\n", id_fmt, progress_fmt, content_fmt)
@@ -314,6 +336,7 @@ func Boot() {
 	dataFolderPath := filepath.Join(usr.HomeDir, ".tuesday/")
 	_, err2 := os.Stat(dataFolderPath)
 	if os.IsNotExist(err2) {
+		fmt.Printf("INFO: Creating default data folder %s", dataFolderPath)
 		os.Mkdir(dataFolderPath, os.ModePerm)
 	}
 
