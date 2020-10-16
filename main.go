@@ -29,11 +29,11 @@ func FormatTaskProgress(progress string) string {
 
 func PrintHeader(week string) {
 	fmt.Printf("╔══════════════════════════════════════════════════════════════╗\n")
-	fmt.Printf("║                            Week %s                            ║\n", week)
+	fmt.Printf("║                            Week %s                 ╔══════════╣\n", week)
 }
 
 func PrintClassHeader(class string) {
-	fmt.Printf("╠═════╬══════════╬═════════════════════════════════ [ %s ]\n", class)
+	fmt.Printf("╠═════╬══════════╬══════════════════════════════════╣ %s ║\n", class)
 }
 
 func PrintTotalProgress(tasks [][]string, week string) {
@@ -44,7 +44,7 @@ func PrintTotalProgress(tasks [][]string, week string) {
 }
 
 func PrintFooter(tasks [][]string, week string) {
-	fmt.Println("╠═══════════════════════════════════════════════════╦══════════╗")
+	fmt.Println("╠═════╩══════════╩══════════════════════════════════╦══════════╗")
 	PrintTotalProgress(tasks, week)
 	fmt.Println("╚═══════════════════════════════════════════════════╩══════════╝")
 
@@ -103,9 +103,14 @@ func FormatTotalProgress(tp int, width int, start string) string {
 	return fmt.Sprintf("%s%s", blocks, filler)
 }
 
-func PrintTask(task []string) {
+func PrintTask(task []string, extra string) {
 	// class := task[0]
 	content := task[2]
+
+	// Format Content
+	content_fmt := Fillr(content, " ", 33)
+	content_fmt += extra
+
 	i_progress := task[3]
 	id := task[5]
 
@@ -113,7 +118,7 @@ func PrintTask(task []string) {
 	// content_fmt := Fillr(content, " ", 20)
 	progress_fmt := FormatTaskProgress(i_progress)
 
-	fmt.Printf("║%s ║%s║ %s\n", id_fmt, progress_fmt, content)
+	fmt.Printf("║%s ║%s║ %s\n", id_fmt, progress_fmt, content_fmt)
 }
 
 func PrintAll(lines [][]string, week string) {
@@ -121,7 +126,8 @@ func PrintAll(lines [][]string, week string) {
 	PrintHeader(week)
 
 	last_class := ""
-	for _, task := range lines {
+	lines_len := len(lines)
+	for i, task := range lines {
 
 		// If its the week we want
 		if task[1] == week {
@@ -130,10 +136,24 @@ func PrintAll(lines [][]string, week string) {
 			// Start a new class header
 			if class != last_class {
 				PrintClassHeader(class)
-				PrintTask(task)
+
+				PrintTask(task, "╚══════════╝")
+				// PrintTask(task, "")
+
 				// Continue old class header
 			} else {
-				PrintTask(task)
+
+				// If next class will be different
+				if i == lines_len-1 {
+					i -= 1
+				}
+				if lines[i+1][0] != lines[i][0] {
+					PrintTask(task, "╔══════════╗")
+
+				} else {
+					PrintTask(task, "")
+
+				}
 			}
 
 			last_class = class
