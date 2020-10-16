@@ -34,11 +34,13 @@ func PrintHeader(week string) {
 }
 
 func PrintClassHeader(class string) {
-	fmt.Printf("╠═════╬══════════╬══════════════════════════════════╣ %s ║\n", class)
+	fmt_class := Fillr(class, " ", 9)
+	fmt.Printf("╠═════╬══════════╬══════════════════════════════════╣ %s║\n", fmt_class)
 }
 
 func PrintClassHeaderFirst(class string) {
-	fmt.Printf("╠═════╦══════════╦══════════════════════════════════╣ %s ║\n", class)
+	fmt_class := Fillr(class, " ", 9)
+	fmt.Printf("╠═════╦══════════╦══════════════════════════════════╣ %s║\n", fmt_class)
 }
 
 func PrintTotalProgress(tasks [][]string, week string) {
@@ -321,11 +323,13 @@ func main() {
 	Boot()
 	lines := LoadCSV()
 
+	// Add Task
 	if len(os.Args) >= 2 && os.Args[1] == "a" {
 		AddTask(lines, os.Args[2:])
 		return
 	}
 
+	// Exist if no arguments and no tasks created yet
 	if lines == nil && len(os.Args) == 1 {
 		fmt.Println("No tasks added yet.")
 		fmt.Println("Add one with: t a <class>:<week>:<text>")
