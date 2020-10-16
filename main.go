@@ -29,7 +29,7 @@ func FormatTaskProgress(progress string) string {
 
 func PrintHeader(week string) {
 	fmt.Printf("╔══════════════════════════════════════════════════════════════╗\n")
-	fmt.Printf("║                            Week %s                 ╔══════════╣\n", week)
+	fmt.Printf("║  ID                        Week %s                ╔══════════╣\n", Fillr(week, " ", 2))
 }
 
 func PrintClassHeader(class string) {
