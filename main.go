@@ -36,6 +36,10 @@ func PrintClassHeader(class string) {
 	fmt.Printf("╠═════╬══════════╬══════════════════════════════════╣ %s ║\n", class)
 }
 
+func PrintClassHeaderFirst(class string) {
+	fmt.Printf("╠═════╦══════════╦══════════════════════════════════╣ %s ║\n", class)
+}
+
 func PrintTotalProgress(tasks [][]string, week string) {
 	tp := CalcTotalProgress(tasks, week)
 	tp_fmt := FormatTotalProgress(tp, 51, "║")
@@ -135,10 +139,14 @@ func PrintAll(lines [][]string, week string) {
 			class := task[0]
 			// Start a new class header
 			if class != last_class {
-				PrintClassHeader(class)
+
+				if last_class == "" {
+					PrintClassHeaderFirst(class)
+				} else {
+					PrintClassHeader(class)
+				}
 
 				PrintTask(task, "╚══════════╝")
-				// PrintTask(task, "")
 
 				// Continue old class header
 			} else {
