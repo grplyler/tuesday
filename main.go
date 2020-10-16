@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	au "github.com/logrusorgru/aurora"
 )
 
 const (
@@ -19,12 +21,19 @@ const (
 	PROGRESS_CHAR = "▓"
 )
 
-func FormatTaskProgress(progress string) string {
+var (
+	CSCALE []int = []int{17, 18, 19, 20, 21}
+)
+
+func FormatTaskProgress(progress string) au.Value {
 	done, _ := strconv.Atoi(progress)
 	n_blocks := done / 10.0
 	blocks := strings.Repeat(PROGRESS_CHAR, n_blocks)
 	filler := strings.Repeat(FILLER_CHAR, 10-n_blocks)
-	return fmt.Sprintf("%s%s", blocks, filler)
+	final := fmt.Sprintf("%s%s", blocks, filler)
+
+	color := ColorFromScaleProgress(progress)
+	return au.BgIndex(color, final)
 }
 
 func PrintHeader(week string) {
