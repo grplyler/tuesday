@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/logrusorgru/aurora"
 )
 
 /**------------------------------------------------------------------------
@@ -19,8 +21,11 @@ import (
  *------------------------------------------------------------------------**/
 
 const (
-	FILLER_CHAR   = "░"
-	PROGRESS_CHAR = "▓"
+	FILLER_CHAR = "░"
+	// PROGRESS_CHAR = "▓"
+	PROGRESS_CHAR = "█"
+	USE_COLOR     = true
+	CSCALE_START  = uint8(214)
 )
 
 /**------------------------------------------------------------------------
@@ -156,7 +161,35 @@ func FormatTaskProgress(progress string) string {
 	n_blocks := done / 10.0
 	blocks := strings.Repeat(PROGRESS_CHAR, n_blocks)
 	filler := strings.Repeat(FILLER_CHAR, 10-n_blocks)
-	return fmt.Sprintf("%s%s", blocks, filler)
+	fmt_progress := fmt.Sprintf("%s%s", blocks, filler)
+
+	// Apply a color scale to the progress with aurora
+
+	colored := ""
+
+	if USE_COLOR {
+		// 214-219
+		step := 0
+		color := CSCALE_START
+		for _, v := range fmt_progress {
+			if step == 2 {
+				color += 1
+				step = 0
+			}
+			if string(v) != FILLER_CHAR {
+				colored += fmt.Sprintf("%s", aurora.Index(color, string(v)))
+
+			} else {
+				colored += string(v)
+			}
+			step += 1
+		}
+
+		return colored
+	} else {
+		return fmt_progress
+	}
+
 }
 
 func FormatTotalProgress(tp int, width int, start string) string {
