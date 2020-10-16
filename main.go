@@ -20,7 +20,8 @@ const (
 )
 
 func FormatTaskProgress(progress string) string {
-	done, _ := strconv.Atoi(progress)
+	done, err := strconv.Atoi(progress)
+	CheckError("progress is not an integer", err)
 	n_blocks := done / 10.0
 	blocks := strings.Repeat(PROGRESS_CHAR, n_blocks)
 	filler := strings.Repeat(FILLER_CHAR, 10-n_blocks)
@@ -99,8 +100,11 @@ func CalcTotalProgress(tasks [][]string, week string) int {
 }
 
 func FormatTotalProgress(tp int, width int, start string) string {
-	nBlocks := math.Round((float64(tp) / 100) * float64(width))
-	fBlocks := float64(width) - nBlocks
+	fwidth := float64(width)
+	ftp := float64(tp)
+
+	nBlocks := math.Round((ftp / 100) * fwidth)
+	fBlocks := fwidth - nBlocks
 
 	filler := strings.Repeat(FILLER_CHAR, int(math.Round(fBlocks)))
 	blocks := strings.Repeat(PROGRESS_CHAR, int(math.Round(nBlocks)))
@@ -175,7 +179,8 @@ func PrintAll(lines [][]string, week string) {
 func GetLatestWeek(lines [][]string) string {
 	greatest := 0
 	for _, v := range lines {
-		currentWeek, _ := strconv.Atoi(v[1])
+		currentWeek, err := strconv.Atoi(v[1])
+		CheckError("Week stored in csv data is not an integer", err)
 		if currentWeek > greatest {
 			greatest = currentWeek
 		}
