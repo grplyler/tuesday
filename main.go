@@ -112,7 +112,6 @@ func FormatTotalProgress(tp int, width int, start string) string {
 }
 
 func PrintTask(task []string, extra string) {
-	// class := task[0]
 	content := task[2]
 
 	// Format Content
@@ -137,13 +136,15 @@ func PrintAll(lines [][]string, week string) {
 	lines_len := len(lines)
 	for i, task := range lines {
 
-		// If its the week we want
+		// Filter data by the week we want
 		if task[1] == week {
 
 			class := task[0]
-			// Start a new class header
+
+			// If we are encountering a new class
 			if class != last_class {
 
+				// If this is the first task in the new class
 				if last_class == "" {
 					PrintClassHeaderFirst(class)
 				} else {
@@ -152,13 +153,16 @@ func PrintAll(lines [][]string, week string) {
 
 				PrintTask(task, "╚══════════╝")
 
-				// Continue old class header
+				// If we're still in the same class
 			} else {
 
-				// If next class will be different
+				// If next class will be different,
+				// prevent out of range error
 				if i == lines_len-1 {
 					i -= 1
 				}
+
+				// Print tax with extra
 				if lines[i+1][0] != lines[i][0] {
 					PrintTask(task, "╔══════════╗")
 
@@ -168,6 +172,7 @@ func PrintAll(lines [][]string, week string) {
 				}
 			}
 
+			// Update last class
 			last_class = class
 		}
 
@@ -189,15 +194,15 @@ func GetLatestWeek(lines [][]string) string {
 	return fmt.Sprintf("%d", greatest)
 }
 
-func sort_data(lines [][]string) [][]string {
+func SortData(lines [][]string) [][]string {
 	sort.SliceStable(lines, func(i, j int) bool {
 		// Sort by week (latest week last)
-		// if lines[i][1] < lines[j][1] {
-		// 	return true
-		// }
-		// if lines[i][1] > lines[j][1] {
-		// 	return false
-		// }
+		if lines[i][1] < lines[j][1] {
+			return true
+		}
+		if lines[i][1] > lines[j][1] {
+			return false
+		}
 
 		// Sort by class name (ASC)
 		return lines[i][0] > lines[j][0]
@@ -229,7 +234,7 @@ func LoadCSV() [][]string {
 	}
 
 	// Sort by week then class title
-	lines = sort_data(lines)
+	lines = SortData(lines)
 
 	// Add ID's
 	counter := 0
@@ -305,8 +310,8 @@ func Boot() {
 		log.Fatal(err)
 	}
 	dataFolderPath := filepath.Join(usr.HomeDir, ".tuesday/")
-	folderInfo, err := os.Stat(dataFolderPath)
-	if folderInfo.IsDir() && os.IsNotExist(err) {
+	_, err2 := os.Stat(dataFolderPath)
+	if os.IsNotExist(err2) {
 		os.Mkdir(dataFolderPath, os.ModePerm)
 	}
 
@@ -315,6 +320,17 @@ func Boot() {
 func main() {
 	Boot()
 	lines := LoadCSV()
+
+	if len(os.Args) >= 2 && os.Args[1] == "a" {
+		AddTask(lines, os.Args[2:])
+		return
+	}
+
+	if lines == nil && len(os.Args) == 1 {
+		fmt.Println("No tasks added yet.")
+		fmt.Println("Add one with: t a <class>:<week>:<text>")
+		os.Exit(1)
+	}
 
 	// Show Latest Week Summary
 	if len(os.Args) == 1 {
@@ -340,11 +356,6 @@ func main() {
 		week := GetLatestWeek(lines)
 		PrintAll(lines, week)
 		return
-	}
-
-	// Add Todo
-	if os.Args[1] == "a" {
-		AddTask(lines, os.Args[2:])
 	}
 
 }
